@@ -1,0 +1,12 @@
+name: Coustomfarm
+version: ${project.version}
+main: com.johnson.coustomfarm.Customfarm
+api-version: 1.20
+commands:
+  reloadplugin:
+    description: Reloads the plugin
+    permission: customminingandfarming.reload
+permissions:
+  customminingandfarming.reload:
+    description: Allows the player to reload the plugin
+    default: op
