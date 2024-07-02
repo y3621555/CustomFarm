@@ -1,0 +1,17 @@
+crops:
+  - WHEAT
+  - POTATO
+  - CARROT
+
+ores:
+  - COAL_ORE
+  - IRON_ORE
+  - GOLD_ORE
+
+allowed_pickaxes:
+  WOODEN_PICKAXE: 10
+  STONE_PICKAXE: 8
+  IRON_PICKAXE: 6
+  GOLDEN_PICKAXE: 4
+  DIAMOND_PICKAXE: 2
+  NETHERITE_PICKAXE: 1
