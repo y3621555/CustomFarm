@@ -23,12 +23,20 @@ public class MiningAndFarmingListener implements Listener {
     private final Set<Material> crops;
     private final Set<Material> ores;
     private final Map<Material, Integer> allowedPickaxes;
+    private final Map<String, Integer> rarityChances;
+    private final Map<String, ChatColor> rarityColors;
+    private final Map<Material, String> oreNames;
+    private final Map<Material, String> cropNames;
 
-    public MiningAndFarmingListener(Customfarm plugin, Set<Material> crops, Set<Material> ores, Map<Material, Integer> allowedPickaxes) {
+    public MiningAndFarmingListener(Customfarm plugin, Set<Material> crops, Set<Material> ores, Map<Material, Integer> allowedPickaxes, Map<String, Integer> rarityChances, Map<String, ChatColor> rarityColors, Map<Material, String> oreNames, Map<Material, String> cropNames) {
         this.plugin = plugin;
         this.crops = crops;
         this.ores = ores;
         this.allowedPickaxes = allowedPickaxes;
+        this.rarityChances = rarityChances;
+        this.rarityColors = rarityColors;
+        this.oreNames = oreNames;
+        this.cropNames = cropNames;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -81,16 +89,20 @@ public class MiningAndFarmingListener implements Listener {
                         // 生成物品並設置稀有度
                         ItemStack item = new ItemStack(blockType);
                         ItemMeta meta = item.getItemMeta();
-                        int rarity = random.nextInt(5) + 1;
+                        int rarity = getRarity();
                         String rarityLore = getRarityLore(rarity);
-                        String rarityStars = getRarityStars(rarity);
-                        meta.setDisplayName(ChatColor.YELLOW + blockType.name() + " " + rarityStars);
-                        meta.setLore(Collections.singletonList(ChatColor.GRAY + "稀有度: " + rarityLore));
+                        ChatColor rarityColor = getRarityColor(rarity);
+                        String displayName = ores.contains(blockType) ? oreNames.getOrDefault(blockType, blockType.name()) : cropNames.getOrDefault(blockType, blockType.name());
+                        meta.setDisplayName(ChatColor.RESET + displayName);
+                        meta.setLore(Arrays.asList(
+                                ChatColor.GRAY + "等級: " + getRarityStars(rarity),
+                                rarityColor + "稀有度: " + rarityLore
+                        ));
                         item.setItemMeta(meta);
 
                         // 掉落物品給玩家
                         player.getInventory().addItem(item);
-                        player.sendMessage(ChatColor.GREEN + "你獲得了一個" + rarityLore + "的" + blockType.name() + "!");
+                        player.sendMessage(ChatColor.GREEN + "你獲得了一個" + rarityLore + "的" + displayName + "!");
 
                         // 增加熟練度
                         if (ores.contains(blockType)) {
@@ -111,7 +123,58 @@ public class MiningAndFarmingListener implements Listener {
         }
     }
 
+    private int getRarity() {
+        int totalChance = rarityChances.values().stream().mapToInt(Integer::intValue).sum();
+        int randomValue = random.nextInt(totalChance);
+
+        int currentSum = 0;
+        for (Map.Entry<String, Integer> entry : rarityChances.entrySet()) {
+            currentSum += entry.getValue();
+            if (randomValue < currentSum) {
+                return getRarityValue(entry.getKey());
+            }
+        }
+        return 1; // 默認為普通
+    }
+
+    private int getRarityValue(String rarity) {
+        switch (rarity) {
+            case "COMMON":
+                return 1;
+            case "RARE":
+                return 2;
+            case "UNCOMMON":
+                return 3;
+            case "EPIC":
+                return 4;
+            case "LEGENDARY":
+                return 5;
+            default:
+                return 1;
+        }
+    }
+
+    private ChatColor getRarityColor(int rarity) {
+        switch (rarity) {
+            case 1:
+                return rarityColors.getOrDefault("COMMON", ChatColor.WHITE);
+            case 2:
+                return rarityColors.getOrDefault("RARE", ChatColor.BLUE);
+            case 3:
+                return rarityColors.getOrDefault("UNCOMMON", ChatColor.GREEN);
+            case 4:
+                return rarityColors.getOrDefault("EPIC", ChatColor.LIGHT_PURPLE);
+            case 5:
+                return rarityColors.getOrDefault("LEGENDARY", ChatColor.GOLD);
+            default:
+                return ChatColor.WHITE;
+        }
+    }
+
     private boolean isMature(Block block) {
+        if (block.getType() == Material.MELON || block.getType() == Material.PUMPKIN) {
+            return true; // 南瓜和西瓜不需要額外的成熟檢查
+        }
         if (block.getBlockData() instanceof Ageable) {
             Ageable ageable = (Ageable) block.getBlockData();
             return ageable.getAge() == ageable.getMaximumAge();

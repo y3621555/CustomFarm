@@ -1,13 +1,16 @@
+# 配置農作物
 crops:
   - WHEAT
-  - POTATO
-  - CARROT
+  - MELON
+  - PUMPKIN
 
+# 配置礦物
 ores:
   - COAL_ORE
   - IRON_ORE
   - GOLD_ORE
 
+# 配置允許使用的鎬子和挖掘時間（秒）
 allowed_pickaxes:
   WOODEN_PICKAXE: 10
   STONE_PICKAXE: 8
@@ -15,3 +18,31 @@ allowed_pickaxes:
   GOLDEN_PICKAXE: 4
   DIAMOND_PICKAXE: 2
   NETHERITE_PICKAXE: 1
+
+# 配置稀有度的機率（百分比）
+rarity_chances:
+  COMMON: 50
+  RARE: 25
+  UNCOMMON: 15
+  EPIC: 7
+  LEGENDARY: 3
+
+# 配置稀有度的顏色
+rarity_colors:
+  COMMON: WHITE
+  RARE: BLUE
+  UNCOMMON: GREEN
+  EPIC: LIGHT_PURPLE
+  LEGENDARY: GOLD
+
+# 配置礦物的中文名稱
+ore_names:
+  COAL_ORE: "煤礦"
+  IRON_ORE: "鐵礦"
+  GOLD_ORE: "金礦"
+
+# 配置農作物的中文名稱
+crop_names:
+  WHEAT: "小麥"
+  MELON: "西瓜"
+  PUMPKIN: "南瓜"
