@@ -17,6 +17,7 @@ public final class Customfarm extends JavaPlugin {
     private Map<String, ChatColor> rarityColors = new HashMap<>();
     private Map<Material, String> oreNames = new HashMap<>();
     private Map<Material, String> cropNames = new HashMap<>();
+    private Database database;
 
     @Override
     public void onEnable() {
@@ -24,8 +25,11 @@ public final class Customfarm extends JavaPlugin {
         saveDefaultConfig();
         loadMaterialsFromConfig();
 
+        // 初始化資料庫
+        database = new Database();
+
         // 註冊事件
-        Bukkit.getPluginManager().registerEvents(new MiningAndFarmingListener(this, crops, ores, allowedPickaxes, rarityChances, rarityColors, oreNames, cropNames), this);
+        Bukkit.getPluginManager().registerEvents(new MiningAndFarmingListener(this, crops, ores, allowedPickaxes, rarityChances, rarityColors, oreNames, cropNames, database), this);
         getLogger().info("CustomMiningAndFarming已啟動!");
     }
 

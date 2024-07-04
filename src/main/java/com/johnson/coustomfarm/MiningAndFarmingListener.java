@@ -27,8 +27,9 @@ public class MiningAndFarmingListener implements Listener {
     private final Map<String, ChatColor> rarityColors;
     private final Map<Material, String> oreNames;
     private final Map<Material, String> cropNames;
+    private final Database database;
 
-    public MiningAndFarmingListener(Customfarm plugin, Set<Material> crops, Set<Material> ores, Map<Material, Integer> allowedPickaxes, Map<String, Integer> rarityChances, Map<String, ChatColor> rarityColors, Map<Material, String> oreNames, Map<Material, String> cropNames) {
+    public MiningAndFarmingListener(Customfarm plugin, Set<Material> crops, Set<Material> ores, Map<Material, Integer> allowedPickaxes, Map<String, Integer> rarityChances, Map<String, ChatColor> rarityColors, Map<Material, String> oreNames, Map<Material, String> cropNames, Database database) {
         this.plugin = plugin;
         this.crops = crops;
         this.ores = ores;
@@ -37,6 +38,7 @@ public class MiningAndFarmingListener implements Listener {
         this.rarityColors = rarityColors;
         this.oreNames = oreNames;
         this.cropNames = cropNames;
+        this.database = database;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -106,9 +108,9 @@ public class MiningAndFarmingListener implements Listener {
 
                         // 增加熟練度
                         if (ores.contains(blockType)) {
-                            addMiningExperience(player);
+                            database.increaseMiningSkill(player.getUniqueId());
                         } else {
-                            addFarmingExperience(player);
+                            database.increaseFarmingSkill(player.getUniqueId());
                         }
 
                         block.setType(Material.AIR); // 清除方塊
@@ -205,13 +207,5 @@ public class MiningAndFarmingListener implements Listener {
             stars.append("⭐");
         }
         return stars.toString();
-    }
-
-    private void addMiningExperience(Player player) {
-        // 增加玩家的礦物熟練度
-    }
-
-    private void addFarmingExperience(Player player) {
-        // 增加玩家的農作物熟練度
     }
 }
