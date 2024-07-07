@@ -1,6 +1,5 @@
-package com.johnson.coustomfarm;
+package com.johnson.customfarm;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -10,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -17,19 +17,20 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 
 public class MiningAndFarmingListener implements Listener {
+    //Customfarm
     private final Customfarm plugin;
     private final Random random = new Random();
     private final Set<Block> processingBlocks = new HashSet<>();
     private final Set<Material> crops;
     private final Set<Material> ores;
-    private final Map<Material, Integer> allowedPickaxes;
+    private final Map<Material, PickaxeConfig> allowedPickaxes;
     private final Map<String, Integer> rarityChances;
     private final Map<String, ChatColor> rarityColors;
     private final Map<Material, String> oreNames;
     private final Map<Material, String> cropNames;
     private final Database database;
 
-    public MiningAndFarmingListener(Customfarm plugin, Set<Material> crops, Set<Material> ores, Map<Material, Integer> allowedPickaxes, Map<String, Integer> rarityChances, Map<String, ChatColor> rarityColors, Map<Material, String> oreNames, Map<Material, String> cropNames, Database database) {
+    public MiningAndFarmingListener(Customfarm plugin, Set<Material> crops, Set<Material> ores, Map<Material, PickaxeConfig> allowedPickaxes, Map<String, Integer> rarityChances, Map<String, ChatColor> rarityColors, Map<Material, String> oreNames, Map<Material, String> cropNames, Database database) {
         this.plugin = plugin;
         this.crops = crops;
         this.ores = ores;
@@ -50,12 +51,22 @@ public class MiningAndFarmingListener implements Listener {
         // 檢查是否為礦物或農作物
         if (ores.contains(blockType) || crops.contains(blockType)) {
 
-            // 如果是礦物，檢查玩家是否使用允許的鎬子
+            // 如果是礦物，檢查玩家是否使用允許的鎬子並且有足夠的熟練度
             if (ores.contains(blockType)) {
                 ItemStack itemInHand = player.getInventory().getItemInMainHand();
                 Material itemType = itemInHand.getType();
                 if (!allowedPickaxes.containsKey(itemType)) {
                     player.sendMessage(ChatColor.RED + "你不能使用這種工具來挖礦!");
+                    event.setCancelled(true);
+                    return;
+                }
+
+                PickaxeConfig config = allowedPickaxes.get(itemType);
+                int requiredSkill = config.getRequiredSkill();
+                int playerSkill = database.getMiningSkill(player.getUniqueId());
+
+                if (playerSkill < requiredSkill) {
+                    player.sendMessage(ChatColor.RED + "你的熟練度不足以使用這種工具! 需要的熟練度: " + requiredSkill);
                     event.setCancelled(true);
                     return;
                 }
@@ -79,7 +90,7 @@ public class MiningAndFarmingListener implements Listener {
             processingBlocks.add(block);
 
             // 讀取鎬子的挖礦時間，如果是農作物則使用默認時間
-            int duration = ores.contains(blockType) ? allowedPickaxes.get(player.getInventory().getItemInMainHand().getType()) : 5;
+            int duration = ores.contains(blockType) ? allowedPickaxes.get(player.getInventory().getItemInMainHand().getType()).getDuration() : 5;
 
             // 顯示讀條
             new BukkitRunnable() {
@@ -98,7 +109,8 @@ public class MiningAndFarmingListener implements Listener {
                         meta.setDisplayName(ChatColor.RESET + displayName);
                         meta.setLore(Arrays.asList(
                                 ChatColor.GRAY + "等級: " + getRarityStars(rarity),
-                                rarityColor + "稀有度: " + rarityLore
+                                rarityColor + "稀有度: " + rarityLore,
+                                ores.contains(blockType) ? ChatColor.DARK_PURPLE + "類型: 礦物" : ChatColor.DARK_PURPLE + "類型: 農作物" // 類型標識
                         ));
                         item.setItemMeta(meta);
 
@@ -122,6 +134,18 @@ public class MiningAndFarmingListener implements Listener {
                     count++;
                 }
             }.runTaskTimer(plugin, 0, 20); // 每秒運行一次
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        ItemStack item = event.getItemInHand();
+        if (item.hasItemMeta() && item.getItemMeta().hasLore()) {
+            List<String> lore = item.getItemMeta().getLore();
+            if (lore != null && (lore.contains(ChatColor.DARK_PURPLE + "類型: 礦物") || lore.contains(ChatColor.DARK_PURPLE + "類型: 農作物"))) {
+                event.getPlayer().sendMessage(ChatColor.RED + "你不能放置這個自定義物品!");
+                event.setCancelled(true);
+            }
         }
     }
 

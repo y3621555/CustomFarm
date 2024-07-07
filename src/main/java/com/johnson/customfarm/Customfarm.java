@@ -1,4 +1,4 @@
-package com.johnson.coustomfarm;
+package com.johnson.customfarm;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,7 +12,7 @@ public final class Customfarm extends JavaPlugin {
 
     private Set<Material> crops = new HashSet<>();
     private Set<Material> ores = new HashSet<>();
-    private Map<Material, Integer> allowedPickaxes = new HashMap<>();
+    private Map<Material, PickaxeConfig> allowedPickaxes = new HashMap<>();
     private Map<String, Integer> rarityChances = new HashMap<>();
     private Map<String, ChatColor> rarityColors = new HashMap<>();
     private Map<Material, String> oreNames = new HashMap<>();
@@ -30,6 +30,16 @@ public final class Customfarm extends JavaPlugin {
 
         // 註冊事件
         Bukkit.getPluginManager().registerEvents(new MiningAndFarmingListener(this, crops, ores, allowedPickaxes, rarityChances, rarityColors, oreNames, cropNames, database), this);
+
+        // 註冊指令
+        SkillCommand skillCommand = new SkillCommand(database);
+        if (getCommand("skill") != null) {
+            this.getCommand("skill").setExecutor(skillCommand);
+            this.getCommand("skill").setTabCompleter(skillCommand);
+        } else {
+            getLogger().severe("指令 'skill' 未在 plugin.yml 中定義！");
+        }
+
         getLogger().info("CustomMiningAndFarming已啟動!");
     }
 
@@ -62,8 +72,9 @@ public final class Customfarm extends JavaPlugin {
         for (String key : config.getConfigurationSection("allowed_pickaxes").getKeys(false)) {
             try {
                 Material pickaxe = Material.valueOf(key);
-                int duration = config.getInt("allowed_pickaxes." + key);
-                allowedPickaxes.put(pickaxe, duration);
+                int duration = config.getInt("allowed_pickaxes." + key + ".duration");
+                int requiredSkill = config.getInt("allowed_pickaxes." + key + ".required_skill");
+                allowedPickaxes.put(pickaxe, new PickaxeConfig(duration, requiredSkill));
             } catch (IllegalArgumentException e) {
                 getLogger().warning("配置文件中無效的鎬子類型: " + key);
             }

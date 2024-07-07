@@ -12,12 +12,24 @@ ores:
 
 # 配置允許使用的鎬子和挖掘時間（秒）
 allowed_pickaxes:
-  WOODEN_PICKAXE: 10
-  STONE_PICKAXE: 8
-  IRON_PICKAXE: 6
-  GOLDEN_PICKAXE: 4
-  DIAMOND_PICKAXE: 2
-  NETHERITE_PICKAXE: 1
+  WOODEN_PICKAXE:
+    duration: 10
+    required_skill: 0
+  STONE_PICKAXE:
+    duration: 8
+    required_skill: 10
+  IRON_PICKAXE:
+    duration: 6
+    required_skill: 20
+  GOLDEN_PICKAXE:
+    duration: 4
+    required_skill: 30
+  DIAMOND_PICKAXE:
+    duration: 2
+    required_skill: 40
+  NETHERITE_PICKAXE:
+    duration: 1
+    required_skill: 50
 
 # 配置稀有度的機率（百分比）
 rarity_chances:
